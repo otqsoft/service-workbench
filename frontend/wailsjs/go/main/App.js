@@ -6,6 +6,10 @@ export function AddService(arg1) {
   return window['go']['main']['App']['AddService'](arg1);
 }
 
+export function ConfirmQuit() {
+  return window['go']['main']['App']['ConfirmQuit']();
+}
+
 export function DeleteService(arg1) {
   return window['go']['main']['App']['DeleteService'](arg1);
 }

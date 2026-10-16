@@ -4,6 +4,8 @@ import {model} from '../models';
 
 export function AddService(arg1:model.ServiceConfig):Promise<void>;
 
+export function ConfirmQuit():Promise<void>;
+
 export function DeleteService(arg1:string):Promise<void>;
 
 export function ExeDir():Promise<string>;

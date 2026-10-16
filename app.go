@@ -15,10 +15,11 @@ import (
 
 // App struct
 type App struct {
-	ctx     context.Context
-	store   *config.Store
-	mgr     *manager.Manager
-	exeDir  string
+	ctx         context.Context
+	store       *config.Store
+	mgr         *manager.Manager
+	exeDir      string
+	confirmExit bool
 }
 
 func NewApp() *App {
@@ -30,6 +31,25 @@ func (a *App) startup(ctx context.Context) {
 	a.mgr.SetContext(ctx)
 
 	// 启动时自动恢复之前运行的服务？第一版先不自动启动，手动来
+}
+
+// onBeforeClose 关闭前拦截：通知前端显示自定义确认弹窗
+// Wails v2 语义（已核对 v2.16.0 源码）：返回 true = 阻止关闭，返回 false = 允许退出
+func (a *App) onBeforeClose(ctx context.Context) bool {
+	// 用户已在前端弹窗中确认过，放行退出
+	if a.confirmExit {
+		return false
+	}
+	// 否则拦截本次关闭，交给前端弹中文确认框
+	runtime.EventsEmit(a.ctx, "before-close")
+	return true
+}
+
+// ConfirmQuit 前端确认退出后调用：停止所有服务并退出程序
+func (a *App) ConfirmQuit() {
+	a.confirmExit = true
+	a.mgr.StopAll()
+	runtime.Quit(a.ctx)
 }
 
 // ------- 配置 CRUD -------

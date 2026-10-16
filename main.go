@@ -23,7 +23,7 @@ func main() {
 	app.mgr = manager.New()
 
 	err := wails.Run(&options.App{
-		Title:  "Service Workbench",
+		Title:  "服务工作台",
 		Width:  1280,
 		Height: 800,
 		AssetServer: &assetserver.Options{
@@ -31,6 +31,7 @@ func main() {
 		},
 		BackgroundColour: &options.RGBA{R: 30, G: 30, B: 30, A: 1},
 		OnStartup:        app.startup,
+		OnBeforeClose:    app.onBeforeClose,
 		Bind: []interface{}{
 			app,
 		},

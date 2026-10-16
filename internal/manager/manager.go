@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
 
 	"service-workbench/internal/model"
 )
@@ -131,8 +133,10 @@ func (m *Manager) run(rs *runningService) {
 	m.emitStatus(rs, model.StatusRunning, 0)
 
 	// 读日志
-	go m.readLog(rs, stdout, false)
-	go m.readLog(rs, stderr, true)
+	stdoutReader := wrapReaderByEncoding(stdout, rs.cfg.LogEncoding)
+	stderrReader := wrapReaderByEncoding(stderr, rs.cfg.LogEncoding)
+	go m.readLog(rs, stdoutReader, false)
+	go m.readLog(rs, stderrReader, true)
 
 	// 等待结束
 	err = cmd.Wait()
@@ -166,6 +170,14 @@ func (m *Manager) readLog(rs *runningService, r io.Reader, isErr bool) {
 		line := scanner.Text()
 		m.pushLog(rs, line, isErr)
 	}
+}
+
+// wrapReaderByEncoding 根据编码配置包装 reader，GBK 自动转 UTF-8
+func wrapReaderByEncoding(r io.Reader, enc string) io.Reader {
+	if strings.ToLower(enc) == "gbk" || strings.ToLower(enc) == "cp936" {
+		return transform.NewReader(r, simplifiedchinese.GBK.NewDecoder())
+	}
+	return r
 }
 
 func (m *Manager) pushLog(rs *runningService, line string, isErr bool) {
